@@ -23,12 +23,6 @@
   (env :cljoth-papers
        :default (str (System/getProperty "user.home") "/cljoth-papers/")))
 
-;; http://export.arxiv.org/rss/cs
-
-;; https://arxiv.org/search/advanced?advanced=1&terms-0-operator=AND&terms-0-term=&terms-0-field=title&classification-computer_science=y&classification-physics_archives=all&classification-include_cross_list=include&date-year=&date-filter_by=date_range&date-from_date=1991-07&date-to_date=1991-08&date-date_type=submitted_date&abstracts=show&size=200&order=-announced_date_first
-
-;; "https://arxiv.org/abs/cs/9301113"
-
 (defn paper-urls-in [url]
   (->> (xml/parse url)
        :content first :content
@@ -77,5 +71,11 @@
 (defn grab-pdf! [paper-url]
   (with-open [out (io/output-stream (io/as-file (pdf-path paper-url)))]
     (io/copy
-     (:body @(http/get (pdf-url paper-url)))
+     (:body (get! (pdf-url paper-url)))
      out)))
+
+;; http://export.arxiv.org/rss/cs
+
+;; https://arxiv.org/search/advanced?advanced=1&terms-0-operator=AND&terms-0-term=&terms-0-field=title&classification-computer_science=y&classification-physics_archives=all&classification-include_cross_list=include&date-year=&date-filter_by=date_range&date-from_date=1991-07&date-to_date=1991-08&date-date_type=submitted_date&abstracts=show&size=200&order=-announced_date_first
+
+;; "https://arxiv.org/abs/cs/9301113"
