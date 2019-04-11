@@ -1,11 +1,33 @@
 (ns cljoth.core
-  (:require [org.httpkit.client :as http]
-            [clojure.xml :as xml]
+  (:require [clojure.xml :as xml]
+            [clojure.string :as str]
+            [clojure.java.io :as io]
+
+            [environ.core :as environ]
+            [org.httpkit.client :as http]
             [net.cgrand.enlive-html :as html]))
+
+(defn env
+  [key & {:keys [default]}]
+  (if-let [val (get environ/env key)]
+    val
+    (or default
+        (throw
+         (Exception.
+          (str "Could not find environment variable "
+               (str/replace
+                (str/upper-case (name key))
+                #"-" "_")))))))
+
+(def +paper-directory+
+  (env :cljoth-papers
+       :default (str (System/getProperty "user.home") "/cljoth-papers/")))
 
 ;; http://export.arxiv.org/rss/cs
 
 ;; https://arxiv.org/search/advanced?advanced=1&terms-0-operator=AND&terms-0-term=&terms-0-field=title&classification-computer_science=y&classification-physics_archives=all&classification-include_cross_list=include&date-year=&date-filter_by=date_range&date-from_date=1991-07&date-to_date=1991-08&date-date_type=submitted_date&abstracts=show&size=200&order=-announced_date_first
+
+;; "https://arxiv.org/abs/cs/9301113"
 
 (defn paper-urls-in [url]
   (->> (xml/parse url)
@@ -41,3 +63,19 @@
   (mapcat
    #(-urls-from-result-page (get! (-format-query %)))
    (-all-date-ranges)))
+
+(defn pdf-path [paper-url]
+  (let [id (last (str/split paper-url #"/"))]
+    (str +paper-directory+ id ".pdf")))
+
+(defn pdf-url [paper-url]
+  (str/replace paper-url #"/abs/" "/pdf/"))
+
+(defn got-pdf? [paper-url]
+  (.exists (io/as-file (pdf-path paper-url))))
+
+(defn grab-pdf! [paper-url]
+  (with-open [out (io/output-stream (io/as-file (pdf-path paper-url)))]
+    (io/copy
+     (:body @(http/get (pdf-url paper-url)))
+     out)))
