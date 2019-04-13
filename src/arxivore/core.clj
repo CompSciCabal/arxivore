@@ -25,7 +25,7 @@
        :default (str (System/getProperty "user.home") "/arxivore-papers/")))
 
 (defn get! [url]
-  (Thread/sleep 1500)
+  (Thread/sleep 15000)
   (:body @(http/get url)))
 
 (defn get-resource! [url]
@@ -90,17 +90,25 @@
 
 (defn grab-pdf! [paper-url]
   (with-open [out (io/output-stream (io/as-file (pdf-path paper-url)))]
-    (io/copy
-     (:body (get! (pdf-url paper-url)))
-     out)))
+    (io/copy (get! (pdf-url paper-url)) out)))
 
 (defn grab-urls! []
   (let [path (str +paper-directory+ "urls.txt")]
-    (doseq [url (historic-paper-urls)]
+    (doseq [url (mapcat #(do (println (str "Getting " % "...")) (-urls-from-date-range %)) (-all-date-ranges))]
       (spit path (str url \newline) :append true))))
 
-;; (defn grab-urls! []
-;;   (historic-paper-urls))
+(defn nom! []
+  (let [historics (atom (drop-while got-pdf? (str/split-lines (slurp (str +paper-directory+ "urls.txt")))))]
+    (while true
+      (let [hs (take 20 @historics)]
+        (swap! historics #(drop 20 %))
+        (doseq [url (set (concat hs (paper-urls-in "http://export.arxiv.org/rss/cs")))]
+          (if (not (got-pdf? url))
+            (do (println "Grabbing <" url ">...")
+                (grab-pdf! url))
+            (do (println "Found duplicate '" url "'..."))))))))
+
+
 
 ;; http://export.arxiv.org/rss/cs
 
