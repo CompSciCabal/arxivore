@@ -89,11 +89,14 @@
   (.exists (io/as-file (pdf-path paper-url))))
 
 (defn grab-pdf! [paper-url]
-  (with-open [out (io/output-stream (io/as-file (pdf-path paper-url)))]
-    (io/copy (get! (pdf-url paper-url)) out)))
+  (let [path (pdf-path paper-url)]
+    (io/make-parents path)
+    (with-open [out (io/output-stream (io/as-file path))]
+      (io/copy (get! (pdf-url paper-url)) out))))
 
 (defn grab-urls! []
   (let [path (str +paper-directory+ "urls.txt")]
+    (io/make-parents path)
     (doseq [url (mapcat #(do (println (str "Getting " % "...")) (-urls-from-date-range %)) (-all-date-ranges))]
       (spit path (str url \newline) :append true))))
 
