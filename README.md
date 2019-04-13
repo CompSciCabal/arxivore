@@ -1,4 +1,4 @@
-# cljoth
+# arxivore
 
 A Clojure library designed to scrape arxiv _very slowly_
 

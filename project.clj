@@ -1,4 +1,4 @@
-(defproject cljoth "0.1.0-SNAPSHOT"
+(defproject axivore "0.1.0-SNAPSHOT"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
@@ -9,5 +9,5 @@
                  [enlive "1.1.1"]
                  [environ "1.1.0"]]
 
-  :main cljoth.core
-  :aot [cljoth.core])
+  :main arxivore.core
+  :aot [arxivore.core])

@@ -1,6 +1,6 @@
-(ns cljoth.core-test
+(ns arxivore.core-test
   (:require [clojure.test :refer :all]
-            [cljoth.core :refer :all]))
+            [arxivore.core :refer :all]))
 
 (deftest a-test
   (testing "FIXME, I fail."
